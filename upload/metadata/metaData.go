@@ -44,7 +44,7 @@ func (m *MetaData) ToJSON() (string, error) {
 	return string(b), nil
 }
 
-// ToMap returns the map representation of the MetaData which can be stored in the page blob metadata colleciton
+// ToMap returns the map representation of the MetaData which can be stored in the page blob metadata collection
 func (m *MetaData) ToMap() (map[string]string, error) {
 	v, err := m.ToJSON()
 	if err != nil {
