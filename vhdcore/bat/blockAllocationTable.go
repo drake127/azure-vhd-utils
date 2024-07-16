@@ -3,7 +3,7 @@ package bat
 import (
 	"math"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore"
+	"github.com/drake127/azure-vhd-utils/vhdcore"
 )
 
 // BlockAllocationTable type represents the Block Allocation Table (BAT) of the disk, BAT served as

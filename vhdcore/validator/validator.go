@@ -3,8 +3,8 @@ package validator
 import (
 	"fmt"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/diskstream"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/vhdfile"
+	"github.com/drake127/azure-vhd-utils/vhdcore/diskstream"
+	"github.com/drake127/azure-vhd-utils/vhdcore/vhdfile"
 )
 
 // oneTB is one TeraByte

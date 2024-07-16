@@ -4,11 +4,11 @@ import (
 	"errors"
 	"io"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/block"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/common"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/footer"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/vhdfile"
+	"github.com/drake127/azure-vhd-utils/vhdcore"
+	"github.com/drake127/azure-vhd-utils/vhdcore/block"
+	"github.com/drake127/azure-vhd-utils/vhdcore/common"
+	"github.com/drake127/azure-vhd-utils/vhdcore/footer"
+	"github.com/drake127/azure-vhd-utils/vhdcore/vhdfile"
 )
 
 // DiskStream provides a logical stream over a VHD file.

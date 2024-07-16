@@ -3,8 +3,8 @@ package block
 import (
 	"io"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/footer"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/reader"
+	"github.com/drake127/azure-vhd-utils/vhdcore/footer"
+	"github.com/drake127/azure-vhd-utils/vhdcore/reader"
 )
 
 // FixedDiskBlockReader type satisfies BlockDataReader interface,

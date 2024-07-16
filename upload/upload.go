@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/Microsoft/azure-vhd-utils/upload/concurrent"
-	"github.com/Microsoft/azure-vhd-utils/upload/progress"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/common"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/diskstream"
+	"github.com/drake127/azure-vhd-utils/upload/concurrent"
+	"github.com/drake127/azure-vhd-utils/upload/progress"
+	"github.com/drake127/azure-vhd-utils/vhdcore/common"
+	"github.com/drake127/azure-vhd-utils/vhdcore/diskstream"
 )
 
 // DiskUploadContext type describes VHD upload context, this includes the disk stream to read from, the ranges of

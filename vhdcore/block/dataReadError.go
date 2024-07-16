@@ -3,7 +3,7 @@ package block
 import (
 	"fmt"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/footer"
+	"github.com/drake127/azure-vhd-utils/vhdcore/footer"
 )
 
 // DataReadError is the error type representing block data read error.

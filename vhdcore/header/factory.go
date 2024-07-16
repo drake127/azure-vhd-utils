@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Microsoft/azure-vhd-utils/vhdcore"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/common"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/header/parentlocator"
-	"github.com/Microsoft/azure-vhd-utils/vhdcore/reader"
+	"github.com/drake127/azure-vhd-utils/vhdcore"
+	"github.com/drake127/azure-vhd-utils/vhdcore/common"
+	"github.com/drake127/azure-vhd-utils/vhdcore/header/parentlocator"
+	"github.com/drake127/azure-vhd-utils/vhdcore/reader"
 )
 
 // Factory type is used to create VhdHeader instance by reading vhd header section.
