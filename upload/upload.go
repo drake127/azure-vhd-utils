@@ -26,6 +26,7 @@ type DiskUploadContext struct {
 	Parallelism           int                       // The number of concurrent goroutines to be used for upload
 	Resume                bool                      // Indicate whether this is a new or resuming upload
 	MD5Hash               []byte                    // MD5Hash to be set in the page blob properties once upload finishes
+	Blake3Hash            []byte                    // Blake3 to be set in the page blob properties once upload finishes
 }
 
 // oneMB is one MegaByte

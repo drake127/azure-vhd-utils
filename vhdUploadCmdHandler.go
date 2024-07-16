@@ -51,6 +51,10 @@ func vhdUploadCmdHandler() cli.Command {
 				Name:  "overwrite",
 				Usage: "Overwrite the blob if already exists.",
 			},
+			cli.StringFlag{
+				Name:  "hash",
+				Usage: "Hash algorithm to use for integrity check. (MD5, Blake3 or None)",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			const PageBlobPageSize int64 = 2 * 1024 * 1024
@@ -99,6 +103,14 @@ func vhdUploadCmdHandler() cli.Command {
 
 			overwrite := c.IsSet("overwrite")
 
+			hash := c.String("hash")
+			if hash != "" && hash != "MD5" && hash != "Blake3" && hash != "None" {
+				return fmt.Errorf("invalid hash algorithm --hash: %s", hash)
+			}
+			if hash == "" {
+				hash = "MD5"
+			}
+
 			ensureVHDSanity(localVHDPath)
 			diskStream, err := diskstream.CreateNewDiskStream(localVHDPath)
 			if err != nil {
@@ -130,7 +142,7 @@ func vhdUploadCmdHandler() cli.Command {
 				}
 			}
 
-			localMetaData := getLocalVHDMetaData(localVHDPath)
+			localMetaData := getLocalVHDMetaData(localVHDPath, hash)
 			var rangesToSkip []*common.IndexRange
 			if resume {
 				if errs := metadata.CompareMetaData(blobMetaData, localMetaData); len(errs) != 0 {
@@ -161,6 +173,7 @@ func vhdUploadCmdHandler() cli.Command {
 				Parallelism:           parallelism,
 				Resume:                resume,
 				MD5Hash:               localMetaData.FileMetaData.MD5Hash,
+				Blake3Hash:            localMetaData.FileMetaData.Blake3Hash,
 			}
 
 			err = upload.Upload(cxt)
@@ -218,8 +231,8 @@ func getBlobMetaData(client storage.BlobStorageClient, containerName, blobName s
 }
 
 // getLocalVHDMetaData returns the metadata of a local VHD
-func getLocalVHDMetaData(localVHDPath string) *metadata.MetaData {
-	localMetaData, err := metadata.NewMetaDataFromLocalVHD(localVHDPath)
+func getLocalVHDMetaData(localVHDPath string, hash string) *metadata.MetaData {
+	localMetaData, err := metadata.NewMetaDataFromLocalVHD(localVHDPath, hash)
 	if err != nil {
 		log.Fatal(err)
 	}

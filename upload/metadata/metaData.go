@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/drake127/azure-vhd-utils/upload/progress"
 	"github.com/drake127/azure-vhd-utils/vhdcore/diskstream"
+	"lukechampine.com/blake3"
 )
 
 // The key of the page blob metadata collection entry holding VHD metadata as json.
@@ -30,7 +31,8 @@ type FileMetaData struct {
 	FileSize         int64     `json:"fileSize"`
 	VHDSize          int64     `json:"vhdSize"`
 	LastModifiedTime time.Time `json:"lastModifiedTime"`
-	MD5Hash          []byte    `json:"md5Hash"` // Marshal will encodes []byte as a base64-encoded string
+	MD5Hash          []byte    `json:"md5Hash"`    // Marshal will encodes []byte as a base64-encoded string
+	Blake3Hash       []byte    `json:"blake3Hash"` // Marshal will encodes []byte as a base64-encoded string
 }
 
 // ToJSON returns MetaData as a json string.
@@ -54,7 +56,7 @@ func (m *MetaData) ToMap() (map[string]string, error) {
 
 // NewMetaDataFromLocalVHD creates a MetaData instance that should be associated with the page blob
 // holding the VHD. The parameter vhdPath is the path to the local VHD.
-func NewMetaDataFromLocalVHD(vhdPath string) (*MetaData, error) {
+func NewMetaDataFromLocalVHD(vhdPath string, hash string) (*MetaData, error) {
 	fileStat, err := getFileStat(vhdPath)
 	if err != nil {
 		return nil, err
@@ -72,7 +74,12 @@ func NewMetaDataFromLocalVHD(vhdPath string) (*MetaData, error) {
 	}
 	defer diskStream.Close()
 	fileMetaData.VHDSize = diskStream.GetSize()
-	fileMetaData.MD5Hash, err = calculateMD5Hash(diskStream)
+
+	if hash == "MD5" {
+		fileMetaData.MD5Hash, err = calculateMD5Hash(diskStream)
+	} else if hash == "Blake3" {
+		fileMetaData.Blake3Hash, err = calculateBlake3Hash(diskStream)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +119,13 @@ func CompareMetaData(remote, local *MetaData) []error {
 			fmt.Errorf("MD5 hash of VHD file in Azure blob storage (%v) and local VHD file (%v) does not match",
 				base64.StdEncoding.EncodeToString(remote.FileMetaData.MD5Hash),
 				base64.StdEncoding.EncodeToString(local.FileMetaData.MD5Hash)))
+	}
+
+	if !bytes.Equal(remote.FileMetaData.Blake3Hash, local.FileMetaData.Blake3Hash) {
+		metadataErrors = append(metadataErrors,
+			fmt.Errorf("Blake3 hash of VHD file in Azure blob storage (%v) and local VHD file (%v) does not match",
+				base64.StdEncoding.EncodeToString(remote.FileMetaData.Blake3Hash),
+				base64.StdEncoding.EncodeToString(local.FileMetaData.Blake3Hash)))
 	}
 
 	if remote.FileMetaData.VHDSize != local.FileMetaData.VHDSize {
@@ -171,7 +185,35 @@ func calculateMD5Hash(diskStream *diskstream.DiskStream) ([]byte, error) {
 	}()
 
 	h := md5.New()
-	buf := make([]byte, 2097152) // 2 MB staging buffer
+	buf := make([]byte, 131072) // don't set this buffer too large, cache lines are not that big
+	_, err := io.CopyBuffer(h, progressStream, buf)
+	if err != nil {
+		return nil, err
+	}
+	return h.Sum(nil), nil
+}
+
+// calculateBlake3Hash compute the Blake3 checksum of a disk stream, it writes the compute progress in stdout
+// If there is an error in reading file, then the Blake3 compute will stop and it return error.
+func calculateBlake3Hash(diskStream *diskstream.DiskStream) ([]byte, error) {
+	progressStream := progress.NewReaderWithProgress(diskStream, diskStream.GetSize(), 1*time.Second)
+	defer progressStream.Close()
+
+	go func() {
+		s := time.Time{}
+		fmt.Println("Computing Blake3 Checksum..")
+		for progressRecord := range progressStream.ProgressChan {
+			t := s.Add(progressRecord.RemainingDuration)
+			fmt.Printf("\r Completed: %3d%% RemainingTime: %02dh:%02dm:%02ds Throughput: %d MB/sec",
+				int(progressRecord.PercentComplete),
+				t.Hour(), t.Minute(), t.Second(),
+				int(progressRecord.AverageThroughputMbPerSecond),
+			)
+		}
+	}()
+
+	h := blake3.New(32, nil)
+	buf := make([]byte, 131072) // don't set this buffer too large, cache lines are not that big
 	_, err := io.CopyBuffer(h, progressStream, buf)
 	if err != nil {
 		return nil, err
